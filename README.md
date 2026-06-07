@@ -38,7 +38,7 @@ Skill全流程已拆成 **3 个独立技能**，可以拆分使用和优化：
 
 如果只想**把图片PPT转换成可编辑的PPTX文件**，提示词：
 ```
-把当前文件夹里的XXX.png，使用GordenImage2PPTX，还原成可编辑的PPT
+把当前文件夹里的XXX.png，使用GordenImage2PPTX，还原成可编辑的PPT，必须严格遵循技能步骤
 ```
 
 说明：
