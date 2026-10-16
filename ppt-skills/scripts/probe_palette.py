@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Probe a slide image and recommend a safe chroma-key color for icon extraction.
 
-Why: in Part 2 we extract icons onto a flat chroma-key canvas and then remove that
-color with `remove_chroma_key.py`. If the slide itself contains the key color
+Why: during conversion we extract frames and icons onto a flat chroma-key canvas and then remove that
+color with `chroma_key.py`. If the slide itself contains the key color
 (e.g. a green slide keyed on green), the icons get eaten by the matte. This tool
 samples the slide, reports which candidate key colors collide with the artwork,
 and prints the first safe one.
@@ -23,7 +23,7 @@ import sys
 from pathlib import Path
 
 # Candidate key colors in priority order. Green first (best matte behaviour in
-# remove_chroma_key.py), then magenta, orange, red, cyan. Each entry is
+# chroma_key.py), then magenta, orange, red, cyan. Each entry is
 # (name, hex, target_hue_degrees).
 CANDIDATES = [
     ("green", "#00ff00", 120.0),

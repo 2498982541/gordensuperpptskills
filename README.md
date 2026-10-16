@@ -1,111 +1,88 @@
-# Gorden Super PPT Skills（技能包）
+# PPT Skills
 
-AI PPT赛道终结者，史上最最最强 PPT Skill！！！
+一个 Codex 技能：先访谈确认内容和风格，用 AI 生成整套豪华的图片版 PPT，再把每一页还原成**可编辑的 PPTX**。
 
-使用GPT生成豪华的图片格式PPT，然后转换为**完全可编辑**的PPTX文件。
+基于 [Gorden Sun 的 GordenSuperPPTSkills](https://github.com/GordenSun/GordenSuperPPTSkills) 改造：原来的三个技能合并为一个 [`ppt-skills`](ppt-skills/SKILL.md)，加入需求访谈、风格样张确认和逐页子代理转换，同时精简了流程说明。
 
-Skill全流程已拆成 **3 个独立技能**，可以拆分使用和优化：
+## 效果
 
-| 技能 | 作用 | 输入 → 输出 |
+AI 生成的图片版 PPT：
+
+![AI 生成的图片版 PPT 示例](examples/example-Image-ppt.png)
+
+还原后的可编辑 PPTX（文字是真文本框，背景、框架、图标是可移动图片）：
+
+![还原后的可编辑 PPTX 示例](examples/example-editable-pptx.png)
+
+## 流程
+
+1. **需求访谈**：分轮提问，问清用途、受众、页数、画幅、语言、品牌要求和信息密度。只用你提供的材料，不编数据。
+2. **风格选择**：按主题现编 4 个风格选项，可多选；和主题匹配时会把内置参考图风格编进选项。
+3. **大纲确认**：逐页列出标题、核心信息、版式和全部文字，确认后作为唯一文字依据。
+4. **样张确认**：每个选中风格各出 1 张同一页的样张，你看图定稿。
+5. **全套出图**：Codex 内置 `image_gen`，不锁定模型（平台自动用最新），始终要求最高质量。
+6. **逐页转换**：每页一个独立上下文的子代理（默认 `gpt-6.1-sol` / `high`，最多 4 个并行），依次提取背景图、框架图、图标/装饰图，量好位置写成文本框，再用 PowerPoint 真实渲染并和原图对照，最多自动修正 2 轮。
+7. **合并交付**：合成整套可编辑 PPTX，并列出需要人工复查的页面。
+
+每次启动会对比 Codex 的模型列表；出现新模型时会问你要不要换转换模型，每个新模型只问一次。
+
+## 安装
+
+把 `ppt-skills/` 整个文件夹复制到 Codex 的 skills 目录：
+
+```powershell
+Copy-Item -Recurse ppt-skills "$env:USERPROFILE\.codex\skills\ppt-skills"
+```
+
+依赖：
+
+```text
+pip install -r ppt-skills/requirements.txt
+```
+
+逐页核对要用 Microsoft PowerPoint 渲染，所以需要在装了 PowerPoint 的 Windows 上运行。
+
+## 使用
+
+```text
+使用 $ppt-skills，把这份材料做成 PPT：<材料或文件路径>
+```
+
+想把框架图切成可单独移动的部件，在需求里说明「框架要切分」即可。
+
+## 目录
+
+```text
+ppt-skills/
+├── SKILL.md                  主代理流程
+├── references/
+│   ├── interview.md          需求访谈（内置 grilling）、风格选择、大纲与样张确认
+│   ├── image-prompts.md      出图规则、内容密度、版式目录、提示词模板
+│   ├── styles.md             参考风格图库说明
+│   ├── worker.md             子代理的单页转换说明
+│   └── models.json           转换模型与已知模型清单
+├── scripts/                  模型检查、探色、抠图、切图、标尺、布局检查、合成、PowerPoint 渲染、单页检查
+└── assets/styles/            5 组参考图（红藏青商务、红藏青汇报、蓝白架构、蓝色科研、绿色学术）
+tests/                        脚本测试（不调用生图）
+```
+
+## 原理
+
+核心是 GPT 的生图能力和视觉能力：先生成整页图片，再让模型从这张图里分别提取干净的背景图、框架图（卡片、线条、图表图形）和图标/装饰图，绿幕抠图后按坐标放回 PPT，文字则写成真正的文本框。
+
+| 背景图 | 框架图 | 图标和装饰 |
 |---|---|---|
-| **[GordenImagePPTGen](GordenImagePPTGen/SKILL.md)** | 生成「图片格式的 PPT」 | 主题/内容 → 每页 .png + 图片型 .pptx |
-| **[GordenImage2PPTX](GordenImage2PPTX/SKILL.md)** | 把「图片 PPT / 图片」还原成可编辑 pptx | 图片 → 可编辑 .pptx（背景+骨架+图标+文本 四层） |
-| **[GordenSuperPPTSkill](GordenSuperPPTSkill/SKILL.md)** | 打包编排前两者，依次执行 | 主题/内容 → 图片型 PPT + 可编辑 pptx |
+| ![背景图](examples/背景图.png) | ![框架图](examples/框架图.png) | ![图标和装饰](examples/图标和装饰.png) |
 
-- 只要做图片版 PPT → **GordenImagePPTGen**
-- 只把图片转可编辑 → **GordenImage2PPTX**
-- 一键"先出图再转可编辑" / 未指定 → **GordenSuperPPTSkill**（A→B 串联）
+## 测试
 
-## 效果展示
-1、GordenImagePPTGen（Gorden的图片PPT生成技能）生成图片格式的PPT
-
-![GordenImagePPTGen 生成的图片格式 PPT 示例](examples/example-Image-ppt.png)
-
-2、GordenImage2PPTX（Gorden的图片转PPTX技能）把图片转换为完全可编辑的PPTX文件
-
-![GordenImage2PPTX 转换后的可编辑 PPTX 示例](examples/example-editable-pptx.png)
-
-## 如何使用
-仅限Codex使用。
-
-第1步：把Github仓库地址发给Codex让他安装技能；
-
-第2步：按需使用。GPT 5.5模型，推理强度选"中"即可。
-如果只生成图片格式PPT，提示词：
-```
-使用GordenImagePPTGen技能，生成一个N页的PPT，内容为XXX，要求PPT要求豪华、信息密度高、排版复杂
+```text
+python -m unittest discover -s tests -v
 ```
 
-如果只想**把图片PPT转换成可编辑的PPTX文件**，提示词：
-```
-把当前文件夹里的XXX.png，使用GordenImage2PPTX，还原成可编辑的PPT，必须严格遵循技能步骤
-```
-
-说明：
-本技能仅适用于Codex，因为必须使用GPT生成图片和GPT的视觉能力，理论上Opus+GPT生图接口也可以实现，但是本技能没有做专门的适配。
-
-图片转可编辑PPTX文件，比较费额度，转换1张图片大概耗费Plus订阅5小时额度的10%。
-
-框架图默认是整体的一张图，也支持拆分成一个个独立的框架模块图，提示词里明确告诉Codex即可。
-
-## 原理讲解
-核心使用的是GPT的生图能力和视觉解析能力。
-大致步骤是：依次提取PPT图片的背景图、框架图、图标和装饰图、文本。最后在PPT里按坐标拼装起来。当然为了实现完美的效果，做了很多细节验证和约束规则。
-使用过程中，你能看到GPT生成的过程图片。
-
-### 背景图
-
-![图片转 PPTX 过程中的背景图](examples/背景图.png)
-
-### 框架图
-
-![图片转 PPTX 过程中的框架图](examples/框架图.png)
-
-### 图标和装饰
-
-![图片转 PPTX 过程中的图标和装饰](examples/图标和装饰.png)
-
-
-
-
-## 安装（给AI看的）
-
-每个技能目录都是**自包含**的（自带 `scripts/` 与 `references/`）。按需复制：
-
-```bash
-# Codex（按需选装其一/全部）
-cp -R GordenImagePPTGen   "${CODEX_HOME:-$HOME/.codex}/skills/GordenImagePPTGen"
-cp -R GordenImage2PPTX    "${CODEX_HOME:-$HOME/.codex}/skills/GordenImage2PPTX"
-cp -R GordenSuperPPTSkill "${CODEX_HOME:-$HOME/.codex}/skills/GordenSuperPPTSkill"
-```
-
-> GordenSuperPPTSkill 依赖另两个技能，请与它们一起安装（同一 skills 目录/仓库）。最省事：把整个仓库一起复制过去。
-
-## 依赖
-
-```bash
-pip3 install python-pptx pillow numpy
-```
-
-图像生成后端按运行时自动解析（Codex 用内置 `imagegen`），见各技能 `references/runtime-notes.md`。
-
-## 目录结构（本文件夹 = 可整体复制给其他 Agent）
-
-```
-GordenSuperPPTSkills/
-├── README.md                  ← 本文件（总入口）
-├── GordenImagePPTGen/         ← 功能A：出图片 PPT（自带 scripts/ references/ 参考图/）
-├── GordenImage2PPTX/          ← 功能B：图片→可编辑 pptx（自带 scripts/ references/）
-└── GordenSuperPPTSkill/       ← 编排 A→B（自带 references/，调用上面两个技能）
-```
-
-每个技能目录均**自包含**。把整个 `GordenPPTSuperSkills/` 复制到目标 Agent 的 skills 目录即可使用。
-
+在装了 PowerPoint 的 Windows 上设置 `PPT_SKILLS_OFFICE_TESTS=1` 会额外跑真实渲染测试。
 
 ## 致谢与版权
-- 可以商用，**必须标明Github出处，或标记出作者@Gorden Sun**
-- 如果你想加入PPT Skill交流群，可以加我微信duge360
-- 感谢 [LinuxDO](https://linux.do) 社区的支持
 
-
-
+- 原作者 Gorden Sun：可以商用，**必须标明 GitHub 出处，或标记出作者 @Gorden Sun**。
+- 原项目：[GordenSun/GordenSuperPPTSkills](https://github.com/GordenSun/GordenSuperPPTSkills)；感谢 [LinuxDO](https://linux.do) 社区。

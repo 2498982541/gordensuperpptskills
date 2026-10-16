@@ -1,0 +1,3 @@
+interface:
+  display_name: "PPT Skills"
+  short_description: "先访谈确认内容与风格，用 AI 生成整套幻灯片图片，再逐页委派子代理还原成可编辑 PPTX"

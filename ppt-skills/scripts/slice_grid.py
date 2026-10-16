@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Slice a transparent icon/frame image into individual alpha-trimmed PNGs.
 
-Pipeline position (Part 2): after you generate a multi-icon chroma-key sheet
+Pipeline position: after you generate a multi-icon chroma-key sheet
 and run `chroma_key.py` to make it transparent, this tool cuts it into individual
 icon PNGs. Prefer `--auto` for generated icon sheets: it segments by transparent
 gaps and is more tolerant when AI does not place icons perfectly inside cells.
 Optional: when the user explicitly asks to split a full-slide framework image
 into movable pieces, use `--components`. It slices by connected non-transparent
 regions so each transparent-separated frame part becomes a movable PNG. The
-default Image2PPTX workflow keeps the whole transparent frame.png.
+default workflow keeps the whole transparent frame.png.
 
 Usage:
     python3 scripts/slice_grid.py GRID_TRANSPARENT.png OUT_DIR --grid 4x4
@@ -17,7 +17,7 @@ Usage:
     python3 scripts/slice_grid.py frame.png out/frame_parts --components --prefix fp
 
 Notes:
-- Input MUST already be a transparent PNG (run remove_chroma_key.py first).
+- Input MUST already be a transparent PNG (run chroma_key.py first).
 - Cells are cut by equal fractions, so the source grid must be evenly divided.
 - Near-empty cells (mostly transparent) are skipped and reported.
 - Emits a manifest JSON describing each saved cutout (grid position + size).
